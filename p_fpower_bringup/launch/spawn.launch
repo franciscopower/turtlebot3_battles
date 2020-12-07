@@ -1,10 +1,28 @@
 <launch>
-    <!-- <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]" /> -->
-    <arg name="x_pos" default="-3.0" />
-    <arg name="y_pos" default="1.0" />
-    <arg name="z_pos" default="0.0" />
+    <!-- Launch file arguments-->
+    <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+    <arg name="player_name" default="p_fpower"/>
 
-    <param name="robot_description" command="$(find xacro)/xacro $(find p_fpower_description)/urdf/p_fpower.urdf.xacro" />
+    <arg name="x_pos" default="-3.0"/>
+    <arg name="y_pos" default="1.0"/>
+    <arg name="z_pos" default="0.0"/>
 
-    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3 -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+    <group ns="$(arg player_name)">
+       <!-- The tf_prefix config make the link names unique in each .urdf (almost as if they respected namespaces. -->
+       <!-- Check https://answers.ros.org/question/263415/simplest-multiple-robot-scenario-->
+       <param name="tf_prefix" value="$(arg player_name)"></param>
+
+        <!--Load robot xacro into robot_description ros parameter.-->
+        <!-- Nested substitution of args, check: https://answers.ros.org/question/35283/nested-substitution-args-in-launch-files/-->
+        <param name="robot_description" command="$(find xacro)/xacro --inorder $(find p_fpower_description)/urdf/p_fpower.urdf.xacro"/>
+
+        <!--Spawning (criação instantânea) do robô definido pela descrição anteriormente carregada para o robot_description, para uma posição específica da cena. -->
+        <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg player_name) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+
+        <!--Load the controller's parameters from a yaml file.-->
+        <rosparam file="$(find p_fpower_description)/config/controller.yaml" command="load"/>
+
+        <!--Load controller (from ROS)-->
+        <node name="differential_controller" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg player_name)"/>
+    </group>
 </launch>
