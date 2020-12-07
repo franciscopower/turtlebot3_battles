@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
-<robot name="turtlebot3_waffle_pi_sim" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="p_fpower_sim" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:arg name="laser_visual"  default="false"/>
   <xacro:arg name="camera_visual" default="false"/>
   <xacro:arg name="imu_visual"    default="false"/>
+
+  <xacro:include filename="$(find $p_fpower_description)/urdf/ros_diff_drive.gazebo.xacro"/>
 
   <gazebo reference="base_link">
     <material>Gazebo/DarkGrey</material>
@@ -58,7 +60,7 @@
     <material>Gazebo/Grey</material>
   </gazebo>
 
-  <gazebo>
+  <!-- <gazebo>
     <plugin name="turtlebot3_waffle_pi_controller" filename="libgazebo_ros_diff_drive.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
@@ -79,7 +81,7 @@
       <wheelTorque>10</wheelTorque>
       <rosDebugLevel>na</rosDebugLevel>
     </plugin>
-  </gazebo>
+  </gazebo> -->
 
   <gazebo>
     <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">
