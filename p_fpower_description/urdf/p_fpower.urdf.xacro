@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="p_moliveira" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="p_fpower" xmlns:xacro="http://ros.org/wiki/xacro">
   <!--  Xacro description of turtlebot robot waffle pi used to play team hunt.-->
   <!--  Francisco Power-->
   <!--  PARI, November 2020-->
@@ -16,9 +16,9 @@
   <!-- Include other files-->
   <xacro:include filename="$(find ${player_name}_description)/urdf/properties.xacro"/>
 
-  <!--  <xacro:include filename="$(find ${player_name}_description)/urdf/player.gazebo.xacro"/>-->
-  <xacro:include filename="$(find ${player_name}_description)/urdf/p_fpower.gazebo.macro.xacro"/>
-  <xacro:gazebo_macro player_color="Orange" laser_visual="true" camera_visual="false" imu_visual="true"/>
+   <xacro:include filename="$(find ${player_name}_description)/urdf/p_fpower.gazebo.xacro"/>
+  <!-- <xacro:include filename="$(find ${player_name}_description)/urdf/p_fpower.gazebo.macro.xacro"/>
+  <xacro:gazebo_macro player_color="Orange" laser_visual="true" camera_visual="false" imu_visual="true"/> -->
 
   <link name="base_footprint"/>
 
