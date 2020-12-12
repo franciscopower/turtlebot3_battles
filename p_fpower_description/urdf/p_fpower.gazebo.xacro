@@ -4,7 +4,17 @@
   <xacro:arg name="camera_visual" default="false"/>
   <xacro:arg name="imu_visual"    default="false"/>
 
-  <!-- <xacro:include filename="$(find p_fpower_description)/urdf/ros_diff_drive.gazebo.xacro"/> -->
+  <!--Args are local, properties are global, so we copy the values of the arguments to the properties-->
+  <xacro:arg name="player_name" default="p_fpower" />
+  <xacro:arg name="player_color" default="Green" /> <!-- e.g. Red, Orange. Must exist in Gazebo/Colors and be defined in properties.xacro.-->
+
+  <!--Properties are global so they can be viewed from inside the included xacros-->
+  <!--  args are used with $(arg arg_name), properties are used as ${property_name}-->
+  <xacro:property name="player_name" value="$(arg player_name)"/>
+  <xacro:property name="player_color" value="$(arg player_color)"/>
+
+  <!-- include controller file -->
+  <xacro:include filename="$(find ${player_name}_description)/urdf/ros_diff_drive.gazebo.xacro"/>
 
   <gazebo reference="base_link">
     <material>Gazebo/DarkGrey</material>
@@ -18,7 +28,7 @@
     <minDepth>0.001</minDepth>
     <maxVel>0.1</maxVel>
     <fdir1>1 0 0</fdir1>
-    <material>Gazebo/Green</material>
+    <material>Gazebo/${player_color}</material>
   </gazebo>
 
   <gazebo reference="wheel_right_link">
@@ -29,7 +39,7 @@
     <minDepth>0.001</minDepth>
     <maxVel>0.1</maxVel>
     <fdir1>1 0 0</fdir1>
-    <material>Gazebo/Green</material>
+    <material>Gazebo/${player_color}</material>
   </gazebo>
 
   <gazebo reference="caster_back_right_link">
@@ -39,7 +49,7 @@
     <kd>100.0</kd>
     <minDepth>0.001</minDepth>
     <maxVel>1.0</maxVel>
-    <material>Gazebo/Green</material>
+    <material>Gazebo/${player_color}</material>
   </gazebo>
 
   <gazebo reference="caster_back_left_link">
@@ -49,7 +59,7 @@
     <kd>100.0</kd>
     <minDepth>0.001</minDepth>
     <maxVel>1.0</maxVel>
-    <material>Gazebo/Green</material>
+    <material>Gazebo/${player_color}</material>
   </gazebo>
 
   <gazebo reference="imu_link">
@@ -58,29 +68,6 @@
       <visualize>$(arg imu_visual)</visualize>
     </sensor>
     <material>Gazebo/Grey</material>
-  </gazebo>
-
-  <gazebo>
-    <plugin name="turtlebot3_waffle_pi_controller" filename="libgazebo_ros_diff_drive.so">
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
-      <odometrySource>world</odometrySource>
-      <publishOdomTF>true</publishOdomTF>
-      <robotBaseFrame>base_footprint</robotBaseFrame>
-      <publishWheelTF>false</publishWheelTF>
-      <publishTf>true</publishTf>
-      <publishWheelJointState>true</publishWheelJointState>
-      <legacyMode>false</legacyMode>
-      <updateRate>30</updateRate>
-      <leftJoint>wheel_left_joint</leftJoint>
-      <rightJoint>wheel_right_joint</rightJoint>
-      <wheelSeparation>0.287</wheelSeparation>
-      <wheelDiameter>0.066</wheelDiameter>
-      <wheelAcceleration>1</wheelAcceleration>
-      <wheelTorque>10</wheelTorque>
-      <rosDebugLevel>na</rosDebugLevel>
-    </plugin>
   </gazebo>
 
   <gazebo>
@@ -113,7 +100,7 @@
   </gazebo>
 
   <gazebo reference="base_scan">
-    <material>Gazebo/Green</material>
+    <material>Gazebo/${player_color}</material>
     <sensor type="ray" name="lds_lfcd_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>$(arg laser_visual)</visualize>

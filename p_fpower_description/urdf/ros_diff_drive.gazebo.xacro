@@ -1,31 +1,35 @@
-<gazebo>
-    <plugin name="turtlebot3_waffle_pi_controller" filename="libgazebo_ros_diff_drive.so">
-        <commandTopic>cmd_vel</commandTopic>
-        <odometryTopic>odom</odometryTopic>
-        <odometryFrame>odom</odometryFrame>
-        <odometrySource>world</odometrySource>
-        <publishOdomTF>true</publishOdomTF>
-        <!--      <publishOdomTF>true</publishOdomTF>-->
-        <robotBaseFrame>base_footprint</robotBaseFrame>
-        <publishWheelTF>false</publishWheelTF>
-        <publishTf>true</publishTf>
-        <publishWheelJointState>true</publishWheelJointState>
-        <legacyMode>false</legacyMode>
-        <updateRate>30</updateRate>
-        <leftJoint>wheel_left_joint</leftJoint>
-        <rightJoint>wheel_right_joint</rightJoint>
-        <wheelSeparation>0.287</wheelSeparation>
-        <wheelDiameter>0.066</wheelDiameter>
-        <wheelAcceleration>1</wheelAcceleration>
-        <wheelTorque>10</wheelTorque>
-        <rosDebugLevel>na</rosDebugLevel>
-        <linear>
-            <x>
-                <has_velocity_limits>true</has_velocity_limits>
-                <max_velocity>0.1</max_velocity>
-                <min_velocity>-0.1</min_velocity>
-            </x>
-        </linear>
-        <publish_cmd>truesads</publish_cmd>
-    </plugin>
-</gazebo>
+<?xml version="1.0"?>
+<robot name="p_fpower_ros_diff_drive" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <gazebo>
+        <plugin name="turtlebot3_waffle_pi_controller" filename="libgazebo_ros_diff_drive.so">
+            <commandTopic>cmd_vel</commandTopic>
+            <odometryTopic>odom</odometryTopic>
+            <odometryFrame>odom</odometryFrame>
+            <odometrySource>world</odometrySource>
+            <publishOdomTF>true</publishOdomTF>
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+            <publishWheelTF>false</publishWheelTF>
+            <publishTf>true</publishTf>
+            <publishWheelJointState>true</publishWheelJointState>
+            <legacyMode>false</legacyMode>
+            <updateRate>30</updateRate>
+            <leftJoint>wheel_left_joint</leftJoint>
+            <rightJoint>wheel_right_joint</rightJoint>
+            <wheelSeparation>0.287</wheelSeparation>
+            <wheelDiameter>0.066</wheelDiameter>
+            <wheelAcceleration>1</wheelAcceleration>
+            <wheelTorque>10</wheelTorque>
+            <rosDebugLevel>na</rosDebugLevel>
+            <linear>
+                <x>
+                    <has_velocity_limits>true</has_velocity_limits>
+                    <max_velocity>0.1</max_velocity>
+                    <min_velocity>-0.1</min_velocity>
+                </x>
+            </linear>
+            <publish_cmd>truesads</publish_cmd>
+        </plugin>
+    </gazebo>
+
+</robot>
