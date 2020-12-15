@@ -103,7 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+.venvhttps://emanual.robotis.com/docs/en/platform/turtlebot3/teleoperation/#teleoperation
 env/
 venv/
 ENV/
@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.vscode/
