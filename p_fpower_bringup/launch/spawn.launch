@@ -23,10 +23,12 @@
         <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg player_name) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
 
         <!--Load the controller's parameters from a yaml file.-->
-        <!-- <rosparam file="$(find p_fpower_description)/config/controller.yaml" command="load"/> -->
+        <rosparam file="$(find p_fpower_description)/config/controller.yaml" command="load"/>
 
         <!--Load controller (from ROS)-->
         <!-- <node name="differential_controller" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg player_name)"/> -->
+        <node name="differential_controller" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="differential_drive_controller"/>
+
     
     </group>
 
