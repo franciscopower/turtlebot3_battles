@@ -35,15 +35,15 @@ differential_drive_controller:
       max_velocity           : 2.0  # m/s
       min_velocity           : -1 # m/s
       has_acceleration_limits: true
-      max_acceleration       : 8  # m/s^2
-      min_acceleration       : -8 # m/s^2
+      max_acceleration       : 2  # m/s^2
+      min_acceleration       : -2 # m/s^2
       has_jerk_limits        : true
-      max_jerk               : 10.0  # m/s^3
+      max_jerk               : 5.0  # m/s^3
   angular:
     z:
       has_velocity_limits    : true
-      max_velocity           : 3  # rad/s
-      has_acceleration_limits: true
-      max_acceleration       : 6  # rad/s^2
-      has_jerk_limits        : true
-      max_jerk               : 5  # rad/s^3
+      max_velocity           : 1.7  # rad/s
+      has_acceleration_limits: false
+      max_acceleration       : 1.5  # rad/s^2
+      has_jerk_limits        : false
+      max_jerk               : 2.5  # rad/s^3

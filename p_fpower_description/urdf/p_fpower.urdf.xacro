@@ -5,19 +5,17 @@
   <!--  PARI, November 2020-->
 
   <!--Args are local, properties are global, so we copy the values of the arguments to the properties-->
-  <xacro:arg name="player_name" default="p_fpower" />
   <xacro:arg name="player_color" default="Green" /> <!-- e.g. Red, Orange. Must exist in Gazebo/Colors and be defined in properties.xacro.-->
 
   <!--Properties are global so they can be viewed from inside the included xacros-->
-  <xacro:property name="player_name" value="$(arg player_name)"/>
   <xacro:property name="player_color" value="$(arg player_color)"/>
 
   <!-- Include other files-->
-  <xacro:include filename="$(find ${player_name}_description)/urdf/properties.xacro"/>
+  <xacro:include filename="$(find p_fpower_description)/urdf/properties.xacro"/>
 
-   <!-- <xacro:include filename="$(find ${player_name}_description)/urdf/p_fpower.gazebo.xacro"/> -->
-  <xacro:include filename="$(find ${player_name}_description)/urdf/p_fpower.gazebo.macro.xacro"/>
-  <xacro:gazebo_macro player_name="${player_name}" player_color="${player_color}" laser_visual="false" camera_visual="false" imu_visual="false"/>
+   <!-- <xacro:include filename="$(find p_fpower_description)/urdf/p_fpower.gazebo.xacro"/> -->
+  <xacro:include filename="$(find p_fpower_description)/urdf/p_fpower.gazebo.macro.xacro"/>
+  <xacro:gazebo_macro player_color="${player_color}" laser_visual="false" camera_visual="false" imu_visual="false"/>
 
   <link name="base_footprint"/>
 
@@ -229,5 +227,6 @@
     <child link="camera_rgb_optical_frame"/>
   </joint>
   <link name="camera_rgb_optical_frame"/>
+
 
 </robot>

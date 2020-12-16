@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <robot name="p_fpower_sim" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="gazebo_macro" params="player_name player_color laser_visual camera_visual imu_visual" >
+  <xacro:macro name="gazebo_macro" params="player_color laser_visual camera_visual imu_visual" >
 
     <!-- include controller file -->
-    <!-- <xacro:include filename="$(find ${player_name}_description)/urdf/ros_diff_drive.gazebo.xacro" /> -->
-    <xacro:include filename="$(find ${player_name}_description)/urdf/ros_control.gazebo.xacro" />
+    <!-- <xacro:include filename="$(find p_fpower_description)/urdf/ros_diff_drive.gazebo.xacro" /> -->
+    <xacro:include filename="$(find p_fpower_description)/urdf/ros_control.gazebo.xacro" />
 
     <gazebo reference="base_link">
       <material>Gazebo/DarkGrey</material>
