@@ -6,9 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /RobotModel1
-        - /Image1
-        - /LaserScan1
+        - /OdomAxes1
       Splitter Ratio: 0.5
     Tree Height: 694
   - Class: rviz/Selection
@@ -52,7 +50,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 100
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -157,18 +155,25 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.05000000074505806
       Style: Flat Squares
       Topic: /p_fpower/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 0.5
+      Name: OdomAxes
+      Radius: 0.05000000074505806
+      Reference Frame: <Fixed Frame>
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: p_fpower/base_link
+    Fixed Frame: p_fpower/odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -192,25 +197,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.949379920959473
+      Distance: 14.062786102294922
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 1.0538551807403564
+        Y: 0.6903322339057922
+        Z: -0.012042602524161339
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5453976988792419
+      Pitch: 0.5903975963592529
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.7753954529762268
+      Yaw: 5.613575458526611
     Saved: ~
 Window Geometry:
   Displays:

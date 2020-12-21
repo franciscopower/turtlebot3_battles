@@ -23,7 +23,7 @@ differential_drive_controller:
   base_frame_id: "/p_fpower/base_footprint" #default: base_link
   odom_frame_id : "/p_fpower/odom" # Name of frame to publish odometry in.
 
-  enable_odom_tf : true # Publish to TF directly or not
+  enable_odom_tf : false # Publish to TF directly or not
   publish_cmd : true # Publish the velocity command to be executed. It is to monitor the effect of limiters on the controller input.
   allow_multiple_cmd_vel_publishers : true # Setting this to true will allow more than one publisher on the input topic, ~/cmd_vel.
 
