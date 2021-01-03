@@ -6,7 +6,7 @@ from visualization_msgs.msg import Marker
 
 def create_marker(pose):
     my_marker = Marker()
-    my_marker.header.frame_id = "p_fpower/odom"
+    my_marker.header.frame_id = "world"
     my_marker.header.stamp = rospy.Time.now()
     my_marker.ns = "p_fpower"
     my_marker.id = 0

@@ -28,7 +28,6 @@
         <rosparam file="$(find p_fpower_description)/config/controller.yaml" command="load"/>
 
         <!--Load controller (from ROS)-->
-        <!-- <node name="differential_controller" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg player_name)"/> -->
         <node name="differential_controller" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="differential_drive_controller"/>
 
     

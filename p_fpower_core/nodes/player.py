@@ -34,14 +34,18 @@ def driver():
         listener()
         
         twist = Twist()
-        
-        twist.linear.x = 0.1 * eucledian_distance(goal, current_pose)
+    
         twist.linear.y = 0.0
         twist.linear.z = 0.0
-        
         twist.angular.x = 0.0
         twist.angular.y = 0.0
-        twist.angular.z = 2.0 * steering_angle(goal, current_pose)
+        
+        if eucledian_distance(goal, current_pose) >= 0.1:
+            twist.linear.x = 1 * eucledian_distance(goal, current_pose)
+            twist.angular.z = 2.0 * steering_angle(goal, current_pose)
+        else:
+            twist.linear.x = 0
+            twist.angular.z = 0
         
         rospy.loginfo(twist)
 
