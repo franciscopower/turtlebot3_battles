@@ -24,7 +24,7 @@ def callback(states):
     
 def listener():
 
-    rospy.init_node('listener', anonymous=True)
+    rospy.init_node('model_states_to_tf', anonymous=True)
 
     rospy.Subscriber("/gazebo/model_states", ModelStates, callback)
 

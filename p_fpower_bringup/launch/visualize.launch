@@ -2,6 +2,9 @@
     <arg name="player_name" default="p_fpower" />
 
     <!-- Launch rviz, loading configuration file -->
-    <node name="rviz" pkg="rviz" type="rviz" args="--display-config $(find p_fpower_bringup)/config/visualize.rviz" required="false"></node>
+    <node name="rviz" pkg="rviz" type="rviz" args="--display-config $(find p_fpower_bringup)/config/visualize.rviz" required="false">
+        <remap from="/move_base_simple/goal" to="/p_fpower/move_base_simple/goal"/>
+    </node>
+    <node name="goal_marker_creator" pkg="p_fpower_bringup" type="goal_marker_creator.py"></node>
 
 </launch>
