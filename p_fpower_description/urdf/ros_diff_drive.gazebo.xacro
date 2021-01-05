@@ -21,13 +21,13 @@
             <wheelAcceleration>1</wheelAcceleration>
             <wheelTorque>10</wheelTorque>
             <rosDebugLevel>na</rosDebugLevel>
-            <linear>
+            <!-- <linear>
                 <x>
                     <has_velocity_limits>true</has_velocity_limits>
                     <max_velocity>0.1</max_velocity>
                     <min_velocity>-0.1</min_velocity>
                 </x>
-            </linear>
+            </linear> -->
             <publish_cmd>truesads</publish_cmd>
         </plugin>
     </gazebo>

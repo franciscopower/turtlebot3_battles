@@ -4,8 +4,8 @@
   <xacro:macro name="gazebo_macro" params="player_color laser_visual camera_visual imu_visual" >
 
     <!-- include controller file -->
-    <!-- <xacro:include filename="$(find p_fpower_description)/urdf/ros_diff_drive.gazebo.xacro" /> -->
-    <xacro:include filename="$(find p_fpower_description)/urdf/ros_control.gazebo.xacro" />
+    <xacro:include filename="$(find p_fpower_description)/urdf/ros_diff_drive.gazebo.xacro" />
+    <!-- <xacro:include filename="$(find p_fpower_description)/urdf/ros_control.gazebo.xacro" /> -->
 
     <gazebo reference="base_link">
       <material>Gazebo/DarkGrey</material>
