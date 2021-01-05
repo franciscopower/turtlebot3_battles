@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped
 from nav_msgs.msg import Odometry
+import tf
 
 from math import pow, atan2, sqrt
 
@@ -10,20 +11,15 @@ goal = None
 current_pose = None
 
 def eucledian_distance(pose1, pose2):
-    if goal == None or current_pose == None:
-        d = 0
-    else:
-        d = sqrt((pose1.position.x - pose2.position.x)**2 + \
-            (pose1.position.y - pose2.position.y)**2)
+    d = sqrt((pose1.position.x - pose2.position.x)**2 + \
+        (pose1.position.y - pose2.position.y)**2)
     return d
 
 def steering_angle(pose1, pose2):
-    if goal == None or current_pose == None:
-        a = 0
-    else:
-        a = (atan2(pose1.position.y - pose2.position.y, pose1.position.x - pose2.position.x) - \
-            pose2.orientation.z)
+    [_, _, rz] = tf.transformations.euler_from_quaternion([pose2.orientation.x, pose2.orientation.y, pose2.orientation.z, pose2.orientation.w])
+    a = (atan2(pose1.position.y - pose2.position.y, pose1.position.x - pose2.position.x) - rz)
     return a
+
 
 def driver():
     pub = rospy.Publisher('/p_fpower/cmd_vel', Twist, queue_size=10)
@@ -34,19 +30,12 @@ def driver():
         listener()
         
         twist = Twist()
-    
-        twist.linear.y = 0.0
-        twist.linear.z = 0.0
-        twist.angular.x = 0.0
-        twist.angular.y = 0.0
         
-        if eucledian_distance(goal, current_pose) >= 0.1:
-            twist.linear.x = 1 * eucledian_distance(goal, current_pose)
-            twist.angular.z = 2.0 * steering_angle(goal, current_pose)
-        else:
-            twist.linear.x = 0
-            twist.angular.z = 0
-        
+        if goal!=None and current_pose!=None:
+            if eucledian_distance(goal, current_pose) >= 0.1:
+                twist.linear.x = 1 * eucledian_distance(goal, current_pose)
+                twist.angular.z = 2.0 * steering_angle(goal, current_pose)
+
         rospy.loginfo(twist)
 
         pub.publish(twist)
@@ -62,7 +51,6 @@ def goal_callback(pose_stamped):
 def pos_callback(odometry):
     global current_pose
     current_pose = odometry.pose.pose
-    
     
 def listener():
     rospy.Subscriber("p_fpower/move_base_simple/goal", PoseStamped, goal_callback)
