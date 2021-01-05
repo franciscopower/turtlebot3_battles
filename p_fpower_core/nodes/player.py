@@ -34,7 +34,7 @@ def driver():
         if goal!=None and current_pose!=None:
             if eucledian_distance(goal, current_pose) >= 0.1:
                 twist.linear.x = 1 * eucledian_distance(goal, current_pose)
-                twist.angular.z = 2.0 * steering_angle(goal, current_pose)
+                twist.angular.z = 1 * steering_angle(goal, current_pose)
 
         rospy.loginfo(twist)
 
@@ -53,7 +53,7 @@ def pos_callback(odometry):
     current_pose = odometry.pose.pose
     
 def listener():
-    rospy.Subscriber("p_fpower/move_base_simple/goal", PoseStamped, goal_callback)
+    rospy.Subscriber("/p_fpower/move_base_simple/goal", PoseStamped, goal_callback)
     rospy.Subscriber("/p_fpower/odom", Odometry, pos_callback)
 
 
