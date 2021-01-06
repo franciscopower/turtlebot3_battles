@@ -23,11 +23,11 @@ def steering_angle(pose1, pose2):
 
 def driver():
     pub = rospy.Publisher('/p_fpower/cmd_vel', Twist, queue_size=10)
+    rospy.Subscriber("/p_fpower/move_base_simple/goal", PoseStamped, goal_callback)
+    rospy.Subscriber("/p_fpower/odom", Odometry, pos_callback)
     
     rate = rospy.Rate(10) # 10hz
     while not rospy.is_shutdown():
-        
-        listener()
         
         twist = Twist()
         
@@ -52,10 +52,6 @@ def pos_callback(odometry):
     global current_pose
     current_pose = odometry.pose.pose
     
-def listener():
-    rospy.Subscriber("/p_fpower/move_base_simple/goal", PoseStamped, goal_callback)
-    rospy.Subscriber("/p_fpower/odom", Odometry, pos_callback)
-
 
 if __name__ == '__main__':
     
