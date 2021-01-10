@@ -76,13 +76,14 @@ class Player():
         while not rospy.is_shutdown() and k!=ord('q'):
             
             try:
+                
+                point, frame = self.findCentroid(self.image, 'red')
+                
+                
+                print(point)
+                
                 cv.imshow('Camera raw', self.image)
-                
-                
-                
-                
-                
-                
+                cv.imshow('red centroid', frame)
                 k = cv.waitKey(1)
             except:
                 pass
@@ -115,6 +116,75 @@ class Player():
        
             self.cmd_vel_pub.publish(twist)
             rate.sleep()
+      
+     
+    def findCentroid(self, frame, color):
+        """Find the centroid of the largest blob given in an image, given a certain dictionary with binarization limits
+            If shake prevention (SP) mode is active, return centroid as (0,0) 
+            
+        Args:
+            frame (np.ndarray): Original Image
+            limits_dict (dictionary): dictionary with binarization limits and color space
+
+        Returns:
+            tuple: (x,y) coordinates of centroid of largest blob
+            np.ndarray: frame_one_area camera image with drawing tool marked
+        """
+        
+        #create copy of frame
+        frame_one_area = np.copy(frame)
+        
+        # segmentate the image
+        if color == 'blue':
+            I_bin = cv.inRange(frame, (70,0,0), (255,17,17))
+        elif color == 'green':
+            I_bin = cv.inRange(frame, (0,70,0), (17,255,17))
+        elif color == 'red':
+            I_bin = cv.inRange(frame, (0,0,70), (17,17,255))
+        else:
+            print('Color not recognized')
+            return (0,0), frame
+
+        #create labels
+        _, labels, stats, centroids = cv.connectedComponentsWithStats(I_bin, connectivity=4)
+
+        #identify largest area
+        stats[np.where(stats[:, 4] == stats[:, 4].max())[0][0], :] = 0
+        big_area_idx = np.where(stats[:, 4] == stats[:, 4].max())[0][0]
+
+        #find centroid
+        x, y = centroids[big_area_idx]
+        x = int(x)
+        y = int(y)
+        
+        # select mask of largest area
+        M_SA = np.zeros(labels.shape, dtype=np.uint8)
+        M_SA[labels == big_area_idx] = 255
+
+        if len(stats) != 1:
+            #show selected area in green
+            frame_one_area[M_SA == 255] = (0,255,0)
+            #show centroid of selected area
+            frame_one_area = cv.circle(frame_one_area, (x,y), 5, (0,0,255), -1)
+
+        # #show binarized image
+        # cv.imshow('bin img', I_bin)
+
+        #use shake prevention
+        # discard if area is too small
+        # if stats[big_area_idx, 4] < frame.shape[0]*frame.shape[1]*0.01:
+        #     x = 0
+        #     y = 0
+            
+        #     if len(stats) != 1:
+        #         #show selected area in red
+        #         frame_one_area[M_SA == 255] = (0,0,255)
+        # discard if it cannot find any whitepoints
+        if len(stats) == 1:
+            x = 0
+            y = 0
+        
+        return (x,y), frame_one_area 
             
 if __name__ == '__main__':
     rospy.init_node('green1', anonymous=False)
