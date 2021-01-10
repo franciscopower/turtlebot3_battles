@@ -1,11 +1,29 @@
 <launch>
-    <rosparam command="load" file="$(find p_fpower_bringup)/params/game.yaml"/>
+    <rosparam command="load" file="$(find p_fpower_bringup)/config/game.yaml"/>
 
     <include file="$(find p_fpower_bringup)/launch/spawn.launch">
         <arg name="player_name" value="red1" />
         <arg name="player_color" value="Red" />
-        <arg name="x_pos" default="5.0" />
-        <arg name="y_pos" default="5.0" />
+        <arg name="x_pos" default="2.0" />
+        <arg name="y_pos" default="2.0" />
+        <arg name="z_pos" default="0.0" />
+
+    </include>
+
+    <include file="$(find p_fpower_bringup)/launch/spawn.launch">
+        <arg name="player_name" value="green1" />
+        <arg name="player_color" value="Green" />
+        <arg name="x_pos" default="-2.0" />
+        <arg name="y_pos" default="2.0" />
+        <arg name="z_pos" default="0.0" />
+
+    </include>
+
+    <include file="$(find p_fpower_bringup)/launch/spawn.launch">
+        <arg name="player_name" value="blue1" />
+        <arg name="player_color" value="Blue" />
+        <arg name="x_pos" default="-2.0" />
+        <arg name="y_pos" default="-2.0" />
         <arg name="z_pos" default="0.0" />
 
     </include>

@@ -169,6 +169,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   nodes/model_states_to_tf.py
   nodes/player.py
+  nodes/go_to_goal.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
