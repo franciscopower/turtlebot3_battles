@@ -130,7 +130,6 @@
         <visualize>${camera_visual}</visualize>
         <camera>
           <horizontal_fov>1.085595</horizontal_fov>
-          <!-- <horizontal_fov>2.899921</horizontal_fov> -->
           <image>
             <!-- <width>640</width> -->
             <width>1000</width>
@@ -155,6 +154,21 @@
           <distortionK3>0.0</distortionK3>
           <distortionT1>0.0</distortionT1>
           <distortionT2>0.0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+    <gazebo reference="base_link">
+      <sensor name="base_link" type="contact">
+        <update_rate>1000.0</update_rate>
+        <always_on>true</always_on>
+        <contact>
+          <collision>base_footprint_fixed_joint_lump__base_link_collision_collision</collision>
+        </contact>
+        <plugin name="base_link_contact_sensor_plugin" filename="libgazebo_ros_bumper.so">
+          <bumperTopicName>contact</bumperTopicName>
+          <!-- <frameName>world</frameName> -->
+          <frameName>base_footprint</frameName>
         </plugin>
       </sensor>
     </gazebo>
