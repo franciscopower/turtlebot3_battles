@@ -130,8 +130,10 @@
         <visualize>${camera_visual}</visualize>
         <camera>
           <horizontal_fov>1.085595</horizontal_fov>
+          <!-- <horizontal_fov>2.899921</horizontal_fov> -->
           <image>
-            <width>640</width>
+            <!-- <width>640</width> -->
+            <width>1000</width>
             <height>480</height>
             <format>R8G8B8</format>
           </image>

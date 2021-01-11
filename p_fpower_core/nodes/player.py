@@ -30,17 +30,23 @@ class Player():
             if self.name in names_red:
                 self.my_team = 'red'
                 self.my_team_players = names_red
+                self.prey_team = 'green'
                 self.prey_team_players = names_green
+                self.hunter_team = 'blue'
                 self.hunter_team_players = names_blue
             elif self.name in names_green:
                 self.my_team = 'green'
                 self.my_team_players = names_green
+                self.prey_team = 'blue'
                 self.prey_team_players = names_blue
+                self.hunter_team = 'red'
                 self.hunter_team_players = names_red
             elif self.name in names_blue:
                 self.my_team =  'blue'
                 self.my_team_players = names_blue
+                self.prey_team = 'red'
                 self.prey_team_players = names_red
+                self.hunter_team = 'green'
                 self.hunter_team_players = names_green
             else:
                 rospy.logfatal('Name is not in any team')
@@ -53,6 +59,8 @@ class Player():
         # initialize cvbridge
         self.cv_bridge = CvBridge()  
         
+        self.goal = None
+        
         # initialize publishers and subscribers         
         self.cmd_vel_pub = rospy.Publisher(self.name + '/cmd_vel', Twist, queue_size=10)    
         self.goal_sub = rospy.Subscriber(self.name + "/move_base_simple/goal", PoseStamped, self.goalCallback)
@@ -61,7 +69,6 @@ class Player():
         # initialize transform buffer  
         self.tfBuffer = tf2_ros.Buffer(rospy.Duration(1200)) #? what is this time
         self.listener = tf2_ros.TransformListener(self.tfBuffer)
-        
         
     
     def goalCallback(self, pose_stamped):
@@ -72,19 +79,36 @@ class Player():
         
     def imageProcessor(self):
         rate = rospy.Rate(10)
-        k = ''
-        while not rospy.is_shutdown() and k!=ord('q'):
+        pm = 1
+        while not rospy.is_shutdown():
             
-            try:
+            try:  
+            
+                point, frame = self.findCentroid(self.image, self.prey_team)
                 
-                point, frame = self.findCentroid(self.image, 'red')
+                twist = Twist()
+                if point==(0,0):
+                    angular_vel = pm * 0.8
+                    linear_vel = 0 
+                else:
+                    angular_vel = -0.005 * (point[0] - self.image.shape[1]/2)
+                    linear_vel = 1
+                    pm = np.sign(angular_vel)
                 
-                
-                print(point)
-                
-                cv.imshow('Camera raw', self.image)
+                twist.angular.z = angular_vel
+                twist.linear.x = linear_vel
+                                
+                # cv.imshow('Camera raw', self.image)
                 cv.imshow('red centroid', frame)
                 k = cv.waitKey(1)
+                if k == ord('q'):
+                    twist.angular.z = 0
+                    twist.linear.x = 0
+                    self.cmd_vel_pub.publish(twist)
+                    break
+
+                self.cmd_vel_pub.publish(twist)
+                
             except:
                 pass
             
@@ -97,21 +121,21 @@ class Player():
         rate = rospy.Rate(10) # 10hz
         while not rospy.is_shutdown():
             twist = Twist()
-            try:
-                goal_copy = deepcopy(self.goal)
-                goal_copy.header.stamp = rospy.Time.now()
-                goal_base_link = self.tfBuffer.transform(goal_copy, self.name + '/base_footprint',
-                                                        rospy.Duration(0.05)) #? what is this time
+            
+            if self.goal==None:
+                continue
+                
+            goal_copy = deepcopy(self.goal)
+            goal_copy.header.stamp = rospy.Time.now()
+            goal_base_link = self.tfBuffer.transform(goal_copy, self.name + '/base_footprint',
+                                                    rospy.Duration(0.05)) #? what is this time
 
-                if sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2) >= 0.2:
-                    a = atan2(goal_base_link.pose.position.y, goal_base_link.pose.position.x)
-                    d = sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2)
-                    twist.linear.x = 1 * min(d,1.0)
-                    twist.angular.z = 1 * a
-            
-            except:
-                pass         
-            
+            if sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2) >= 0.2:
+                a = atan2(goal_base_link.pose.position.y, goal_base_link.pose.position.x)
+                d = sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2)
+                twist.linear.x = 1 * min(d,1.0)
+                twist.angular.z = 1 * a
+                    
             print('\nPublished velocidy:\n\tLinear: ' + str(twist.linear.x) + '\n\tAngular: ' + str(twist.angular.z))
        
             self.cmd_vel_pub.publish(twist)
@@ -193,6 +217,7 @@ if __name__ == '__main__':
     try:
         player = Player(name)
         player.imageProcessor()
+        # player.driveToGoal()
     except KeyboardInterrupt:
         print("Shutting down vision node.")
         cv.DestroyAllWindows()
