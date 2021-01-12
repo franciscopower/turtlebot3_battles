@@ -65,11 +65,7 @@ class Player():
         
         self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
         self.collision_sub = rospy.Subscriber(self.name + '/contact', ContactsState, self.updateScore)
-
-    
-    def goalCallback(self, pose_stamped):
-        self.goal = pose_stamped
-        
+       
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')
         
@@ -199,7 +195,6 @@ class Player():
                 
                 self.model_state_pub.publish(base)
                      
-
     def __str__(self):
         s = '----------------------------' + \
             '\nName: ' + self.name + \
