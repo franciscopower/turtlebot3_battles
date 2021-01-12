@@ -2,10 +2,6 @@
 
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped, TransformStamped
-from nav_msgs.msg import Odometry
-import tf
-import tf2_ros
-import tf2_geometry_msgs
 from copy import  deepcopy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -184,12 +180,12 @@ class Player():
 
     def updateScore(self, contact_state):
         if contact_state.states!=[]:
-            if self.prey_team in str(contact_state.states[0]):
+            if any(prey in str(contact_state.states[0]) for prey in self.prey_team_players):
                 self.score += 1
                 self.score_pub.publish(self.score)
                 print('Captured prey! :D')
                 
-            elif self.hunter_team in str(contact_state.states[0]):
+            elif any(hunter in str(contact_state.states[0]) for hunter in self.hunter_team_players):
                 self.score -= 1
                 self.score_pub.publish(self.score)
                 print('Got captured... :(')
