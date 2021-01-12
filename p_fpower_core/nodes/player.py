@@ -7,6 +7,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from gazebo_msgs.msg import ContactsState, ModelState
 from std_msgs.msg import Int16
+from nav_msgs.msg import Odometry
+import tf
 
 import cv2 as cv
 from math import pow, atan2, sqrt
@@ -65,9 +67,46 @@ class Player():
         
         self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
         self.collision_sub = rospy.Subscriber(self.name + '/contact', ContactsState, self.updateScore)
+        self.odom_sub = rospy.Subscriber(self.name + "/odom", Odometry, self.odomCallback)
+       
+    def odomCallback(self, odom):
+        self.my_pose = odom.pose.pose            
        
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')
+        
+    def checkBoundaries(self, x_bound, y_bound):
+        _,_,orientation = tf.transformations.euler_from_quaternion([self.my_pose.orientation.x, self.my_pose.orientation.y, self.my_pose.orientation.z, self.my_pose.orientation.w])
+        
+        a = 0
+        in_bounds = True
+        
+        if self.my_pose.position.x >= x_bound:
+            a = np.sign(orientation)*np.pi - orientation
+            in_bounds = False
+            print('Out +X. Correcting: ' + str(a))
+        elif self.my_pose.position.x <= -x_bound:
+            a = - orientation
+            in_bounds = False
+            print('Out -X. Correcting: ' + str(a))
+            
+        if self.my_pose.position.y >= y_bound:
+            if orientation <= np.pi/2:
+                a = -(np.pi/2 + orientation)
+            else:
+                a = 3*np.pi/2 - orientation
+            in_bounds = False
+            print('Out +Y. Correcting: ' + str(a))
+        elif self.my_pose.position.y <= -y_bound:
+            if orientation >= -np.pi/2:
+                a = np.pi/2 - orientation
+            else:
+                a = -(3*np.pi/2 + orientation)
+            in_bounds = False
+            print('Out -Y. Correcting: ' + str(a))
+        
+        return in_bounds, a
+        
         
     def playCatch(self):
         rate = rospy.Rate(10)
@@ -76,22 +115,28 @@ class Player():
             
             try:  
             
-                point, frame = self.findCentroid(self.image, self.prey_team)
-                
                 twist = Twist()
-                if point==(0,0):
-                    angular_vel = pm * 0.8
-                    linear_vel = 0 
-                else:
-                    angular_vel = -0.005 * (point[0] - self.image.shape[1]/2)
-                    linear_vel = 1
-                    pm = np.sign(angular_vel)
                 
+                point, frame = self.findCentroid(self.image, self.prey_team)
+                in_bounds, bound_correction_angle = self.checkBoundaries(3,3)   
+                if in_bounds:    
+                    if point==(0,0):
+                        angular_vel = pm * 0.8
+                        linear_vel = 0 
+                    else:
+                        angular_vel = -0.005 * (point[0] - self.image.shape[1]/2)
+                        linear_vel = 1
+                        pm = np.sign(angular_vel)
+                
+                else:
+                    linear_vel = 0.5
+                    angular_vel = bound_correction_angle
+                    
                 twist.angular.z = angular_vel
                 twist.linear.x = linear_vel
                                 
                 # cv.imshow('Camera raw', self.image)
-                cv.imshow('red centroid', frame)
+                cv.imshow('prey centroid', frame)
                 k = cv.waitKey(1)
                 if k == ord('q'):
                     twist.angular.z = 0
@@ -101,9 +146,10 @@ class Player():
 
                 self.cmd_vel_pub.publish(twist)
                 
-            except:
-                pass
-            
+            except Exception as e:
+                # pass
+                print(e)
+                
             rate.sleep
      
     def findCentroid(self, frame, color):
@@ -179,12 +225,12 @@ class Player():
             if any(prey in str(contact_state.states[0]) for prey in self.prey_team_players):
                 self.score += 1
                 self.score_pub.publish(self.score)
-                print('Captured prey! :D')
+                # print('Captured prey! :D')
                 
             elif any(hunter in str(contact_state.states[0]) for hunter in self.hunter_team_players):
                 self.score -= 1
                 self.score_pub.publish(self.score)
-                print('Got captured... :(')
+                # print('Got captured... :(')
                 
                 # return to spawn point
                 base = ModelState()
@@ -194,6 +240,9 @@ class Player():
                 base.pose.position.z = 0.5
                 
                 self.model_state_pub.publish(base)
+                
+            # rate = rospy.Rate(10)
+            # rate.sleep()
                      
     def __str__(self):
         s = '----------------------------' + \
