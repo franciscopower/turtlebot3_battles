@@ -13,6 +13,7 @@ import tf
 import cv2 as cv
 from math import pow, atan2, sqrt
 import numpy as np
+import random
 
 class Player():
     def __init__(self, name):
@@ -23,6 +24,7 @@ class Player():
             names_red = rospy.get_param('/red_players')
             names_green = rospy.get_param('/green_players')
             names_blue = rospy.get_param('/blue_players')
+            self.arena_size = rospy.get_param('/arena_size')
         except:
             rospy.logfatal('No team parameters loaded')
             exit(0)
@@ -75,20 +77,23 @@ class Player():
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')
         
-    def checkBoundaries(self, x_bound, y_bound):
+    def checkBoundaries(self):
         _,_,orientation = tf.transformations.euler_from_quaternion([self.my_pose.orientation.x, self.my_pose.orientation.y, self.my_pose.orientation.z, self.my_pose.orientation.w])
         
         a = 0
         in_bounds = True
         
+        x_bound = self.arena_size[0]/2
+        y_bound = self.arena_size[1]/2
+        
         if self.my_pose.position.x >= x_bound:
             a = np.sign(orientation)*np.pi - orientation
             in_bounds = False
-            print('Out +X. Correcting: ' + str(a))
+            # print('Out +X. Correcting: ' + str(a))
         elif self.my_pose.position.x <= -x_bound:
             a = - orientation
             in_bounds = False
-            print('Out -X. Correcting: ' + str(a))
+            # print('Out -X. Correcting: ' + str(a))
             
         if self.my_pose.position.y >= y_bound:
             if orientation <= np.pi/2:
@@ -96,14 +101,14 @@ class Player():
             else:
                 a = 3*np.pi/2 - orientation
             in_bounds = False
-            print('Out +Y. Correcting: ' + str(a))
+            # print('Out +Y. Correcting: ' + str(a))
         elif self.my_pose.position.y <= -y_bound:
             if orientation >= -np.pi/2:
                 a = np.pi/2 - orientation
             else:
                 a = -(3*np.pi/2 + orientation)
             in_bounds = False
-            print('Out -Y. Correcting: ' + str(a))
+            # print('Out -Y. Correcting: ' + str(a))
         
         return in_bounds, a
         
@@ -118,7 +123,7 @@ class Player():
                 twist = Twist()
                 
                 point, frame = self.findCentroid(self.image, self.prey_team)
-                in_bounds, bound_correction_angle = self.checkBoundaries(3,3)   
+                in_bounds, bound_correction_angle = self.checkBoundaries()   
                 if in_bounds:    
                     if point==(0,0):
                         angular_vel = pm * 0.8
@@ -129,26 +134,26 @@ class Player():
                         pm = np.sign(angular_vel)
                 
                 else:
-                    linear_vel = 0.5
+                    linear_vel = 1
                     angular_vel = bound_correction_angle
                     
                 twist.angular.z = angular_vel
                 twist.linear.x = linear_vel
                                 
                 # cv.imshow('Camera raw', self.image)
-                cv.imshow('prey centroid', frame)
-                k = cv.waitKey(1)
-                if k == ord('q'):
-                    twist.angular.z = 0
-                    twist.linear.x = 0
-                    self.cmd_vel_pub.publish(twist)
-                    break
+                # cv.imshow('prey centroid', frame)
+                # k = cv.waitKey(1)
+                # if k == ord('q'):
+                #     twist.angular.z = 0
+                #     twist.linear.x = 0
+                #     self.cmd_vel_pub.publish(twist)
+                #     break
 
                 self.cmd_vel_pub.publish(twist)
                 
             except Exception as e:
-                # pass
-                print(e)
+                pass
+                # print(e)
                 
             rate.sleep
      
@@ -235,8 +240,8 @@ class Player():
                 # return to spawn point
                 base = ModelState()
                 base.model_name = self.name
-                base.pose.position.x = 5
-                base.pose.position.y = 5
+                base.pose.position.x = random.uniform(-self.arena_size[0]/2,self.arena_size[0]/2)
+                base.pose.position.y = random.uniform(-self.arena_size[1]/2,self.arena_size[1]/2)
                 base.pose.position.z = 0.5
                 
                 self.model_state_pub.publish(base)
