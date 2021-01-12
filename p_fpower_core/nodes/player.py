@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import rospy
-from geometry_msgs.msg import Twist, Pose, PoseStamped
+from geometry_msgs.msg import Twist, Pose, PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
 import tf
 import tf2_ros
@@ -9,6 +9,8 @@ import tf2_geometry_msgs
 from copy import  deepcopy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from gazebo_msgs.msg import ContactsState, ModelState
+from std_msgs.msg import Int16
 
 import cv2 as cv
 from math import pow, atan2, sqrt
@@ -52,24 +54,22 @@ class Player():
                 rospy.logfatal('Name is not in any team')
                 exit(0)
         
-            print('My name is '+ self.name + '. I am team ' + self.my_team +
-                '. I am hunting ' + str(self.prey_team_players) + ' and being hunted by ' + str(self.hunter_team_players))
         # --------------------------------------------
         
         # initialize cvbridge
         self.cv_bridge = CvBridge()  
         
         self.goal = None
+        self.score = 0
         
         # initialize publishers and subscribers         
         self.cmd_vel_pub = rospy.Publisher(self.name + '/cmd_vel', Twist, queue_size=10)    
-        self.goal_sub = rospy.Subscriber(self.name + "/move_base_simple/goal", PoseStamped, self.goalCallback)
-        self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
-              
-        # initialize transform buffer  
-        self.tfBuffer = tf2_ros.Buffer(rospy.Duration(1200)) #? what is this time
-        self.listener = tf2_ros.TransformListener(self.tfBuffer)
+        self.score_pub = rospy.Publisher(self.name + '/score', Int16, queue_size=10 )
+        self.model_state_pub = rospy.Publisher('/gazebo/set_model_state', ModelState, queue_size=10)
         
+        self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
+        self.collision_sub = rospy.Subscriber(self.name + '/contact', ContactsState, self.updateScore)
+
     
     def goalCallback(self, pose_stamped):
         self.goal = pose_stamped
@@ -77,7 +77,7 @@ class Player():
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')
         
-    def imageProcessor(self):
+    def playCatch(self):
         rate = rospy.Rate(10)
         pm = 1
         while not rospy.is_shutdown():
@@ -113,34 +113,6 @@ class Player():
                 pass
             
             rate.sleep
-    
-    def driveToGoal(self):
-        """
-        Creates twist message to drive robot to goal
-        """
-        rate = rospy.Rate(10) # 10hz
-        while not rospy.is_shutdown():
-            twist = Twist()
-            
-            if self.goal==None:
-                continue
-                
-            goal_copy = deepcopy(self.goal)
-            goal_copy.header.stamp = rospy.Time.now()
-            goal_base_link = self.tfBuffer.transform(goal_copy, self.name + '/base_footprint',
-                                                    rospy.Duration(0.05)) #? what is this time
-
-            if sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2) >= 0.2:
-                a = atan2(goal_base_link.pose.position.y, goal_base_link.pose.position.x)
-                d = sqrt(goal_base_link.pose.position.x**2 +  goal_base_link.pose.position.y**2)
-                twist.linear.x = 1 * min(d,1.0)
-                twist.angular.z = 1 * a
-                    
-            print('\nPublished velocidy:\n\tLinear: ' + str(twist.linear.x) + '\n\tAngular: ' + str(twist.angular.z))
-       
-            self.cmd_vel_pub.publish(twist)
-            rate.sleep()
-      
      
     def findCentroid(self, frame, color):
         """Find the centroid of the largest blob given in an image, given a certain dictionary with binarization limits
@@ -209,15 +181,47 @@ class Player():
             y = 0
         
         return (x,y), frame_one_area 
-            
+
+    def updateScore(self, contact_state):
+        if contact_state.states!=[]:
+            if self.prey_team in str(contact_state.states[0]):
+                self.score += 1
+                self.score_pub.publish(self.score)
+                print('Captured prey! :D')
+                
+            elif self.hunter_team in str(contact_state.states[0]):
+                self.score -= 1
+                self.score_pub.publish(self.score)
+                print('Got captured... :(')
+                
+                # return to spawn point
+                base = ModelState()
+                base.model_name = self.name
+                base.pose.position.x = 5
+                base.pose.position.y = 5
+                base.pose.position.z = 0.5
+                
+                self.model_state_pub.publish(base)
+                     
+
+    def __str__(self):
+        s = '----------------------------' + \
+            '\nName: ' + self.name + \
+            '\nPrey: ' + str(self.prey_team_players) + \
+            '\nHunters: ' + str(self.hunter_team_players) + \
+            '\n\nScore: ' + str(self.score) + \
+            '\n----------------------------'
+        return s
+           
 if __name__ == '__main__':
     rospy.init_node('green1', anonymous=False)
     name = rospy.get_name().strip('/')
                     
     try:
         player = Player(name)
-        player.imageProcessor()
-        # player.driveToGoal()
+        print(player)
+        player.playCatch()
+        print(player)
     except KeyboardInterrupt:
         print("Shutting down vision node.")
         cv.DestroyAllWindows()
