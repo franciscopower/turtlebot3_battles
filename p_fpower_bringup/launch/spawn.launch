@@ -32,6 +32,7 @@
 
     
     </group>
+    <!-- <node name="go_to_goal" pkg="p_fpower_core" type="go_to_goal.py" output="screen"></node> -->
 
     
 

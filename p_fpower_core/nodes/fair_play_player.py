@@ -150,7 +150,10 @@ class Player():
                 #     break
 
                 self.cmd_vel_pub.publish(twist)
-                
+            except KeyboardInterrupt:
+                twist.angular.z = 0
+                twist.linear.x = 0
+                self.cmd_vel_pub.publish(twist)
             except Exception as e:
                 pass
                 # print(e)
