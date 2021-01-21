@@ -58,22 +58,60 @@ class Player():
         
         # initialize publishers and subscribers         
         self.cmd_vel_pub = rospy.Publisher(self.name + '/cmd_vel', Twist, queue_size=10)    
-        
-        self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
-
         self.odom_sub = rospy.Subscriber(self.name + "/odom", Odometry, self.odomCallback)
+        self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
         self.lidar_sub = rospy.Subscriber(self.name + '/scan', LaserScan, self.laserScanCallback)
        
-       
-    def laserScanCallback(self, scan):
-        self.scan = scan
-        
-       
     def odomCallback(self, odom):
-        self.my_pose = odom.pose.pose            
+        self.odom = odom
+         
+    def laserScanCallback(self, polar):
+        
+        a = polar.angle_min
+        r0 = 0.0
+                        
+        cluster = []
+        cluster_size = 0
+        self.clusters = []
+        r_min = np.inf
+        
+        for r in polar.ranges:
+            
+            # if r>polar.range_min and r<polar.range_max:
+            if r != np.inf:
+                #calculate distance between sequential points
+                distance = abs(r-r0)
+                
+                if distance < 1:
+                    if r < r_min:
+                        cluster = [a,r]
+                    cluster_size += 1
+                
+                else:
+                    if cluster_size>100:
+                        cluster.append(cluster_size)
+                        self.clusters.append(cluster)
+                    cluster = []
+                    cluster_size = 0
+                    r_min = np.inf
+                
+                # update variables
+                r0 = r
+                
+            a += polar.angle_increment
+            
+        # print(self.clusters)
+                        
        
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')    
+        self.point_p, frame_p = self.findCentroid(self.image, self.prey_team)
+        self.point_h, frame_h = self.findCentroid(self.image, self.hunter_team)
+        
+        # cv.imshow('Camera raw', self.image)
+        # cv.imshow('hunter centroid', frame_h)
+        cv.imshow('prey centroid', frame_p)
+        cv.waitKey(1)
         
     def playCatch(self):
         rate = rospy.Rate(10)
@@ -81,35 +119,24 @@ class Player():
         while not rospy.is_shutdown():
             
             try:  
-             
-                point_p, frame_p = self.findCentroid(self.image, self.prey_team)
-   
-   
-                if point_p==(0,0):
+                linear_vel = 0
+                if self.point_p==(0,0):
                     angular_vel_p = pm * 0.8
                 else:
-                    angular_vel_p = 0.005 * (self.image.shape[1]/2 - point_p[0])
+                    angular_vel_p = 0.001 * (self.image.shape[1]/2 - self.point_p[0])
+                    if np.sign(self.odom.twist.twist.linear.x) != np.sign(angular_vel_p):
+                        angular_vel_p = 2*angular_vel_p
                     pm = np.sign(angular_vel_p)*1
+                    linear_vel = 1
 
-                point_h, frame_h = self.findCentroid(self.image, self.hunter_team)
-                
-                if point_h==(0,0):
+                if self.point_h==(0,0):
                     angular_vel_h = 0
                 else:
-                    angular_vel_h = 0.005 * np.sign(point_h[0] - self.image.shape[1]/2) * min(self.image.shape[1] - point_h[0], point_h[0])
-                        
+                    angular_vel_h = 0.001 * np.sign(self.point_h[0] - self.image.shape[1]/2) * min(self.image.shape[1] - self.point_h[0], self.point_h[0])
+                    linear_vel = 1
+                    
                 angular_vel = angular_vel_p + angular_vel_h
-                linear_vel = 1.2
-                         
-                # cv.imshow('Camera raw', self.image)
-                # cv.imshow('prey centroid', frame)
-                # k = cv.waitKey(1)
-                # if k == ord('q'):
-                #     twist.angular.z = 0
-                #     twist.linear.x = 0
-                #     self.cmd_vel_pub.publish(twist)
-                #     break
-                
+
                 # create velocity message
                 twist = Twist()
                 twist.angular.z = angular_vel
@@ -123,7 +150,7 @@ class Player():
                 pass
                 # print(e)
                 
-            rate.sleep
+            rate.sleep()
      
     def findCentroid(self, frame, color):
         """Find the centroid of the largest blob given in an image, given a certain dictionary with binarization limits
