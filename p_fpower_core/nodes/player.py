@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseStamped, TransformStamped
 from copy import  deepcopy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, LaserScan
 from cv_bridge import CvBridge, CvBridgeError
 from nav_msgs.msg import Odometry
 import tf
@@ -60,7 +60,14 @@ class Player():
         self.cmd_vel_pub = rospy.Publisher(self.name + '/cmd_vel', Twist, queue_size=10)    
         
         self.camera_sub = rospy.Subscriber(self.name + '/camera/rgb/image_raw', Image, self.imageCallback)
+
         self.odom_sub = rospy.Subscriber(self.name + "/odom", Odometry, self.odomCallback)
+        self.lidar_sub = rospy.Subscriber(self.name + '/scan', LaserScan, self.laserScanCallback)
+       
+       
+    def laserScanCallback(self, scan):
+        self.scan = scan
+        
        
     def odomCallback(self, odom):
         self.my_pose = odom.pose.pose            
@@ -74,23 +81,26 @@ class Player():
         while not rospy.is_shutdown():
             
             try:  
-            
-                twist = Twist()
-                
-                point, frame = self.findCentroid(self.image, self.prey_team)
+             
+                point_p, frame_p = self.findCentroid(self.image, self.prey_team)
    
-                if point==(0,0):
-                    angular_vel = pm * 0.8
-                    linear_vel = 0 
+   
+                if point_p==(0,0):
+                    angular_vel_p = pm * 0.8
                 else:
-                    angular_vel = -0.005 * (point[0] - self.image.shape[1]/2)
-                    # linear_vel = 0.15 * -(angular_vel**2 - np.pi**2)
-                    linear_vel = 1.2
-                    pm = np.sign(angular_vel)
+                    angular_vel_p = 0.005 * (self.image.shape[1]/2 - point_p[0])
+                    pm = np.sign(angular_vel_p)*1
 
-                twist.angular.z = angular_vel
-                twist.linear.x = linear_vel
-                                
+                point_h, frame_h = self.findCentroid(self.image, self.hunter_team)
+                
+                if point_h==(0,0):
+                    angular_vel_h = 0
+                else:
+                    angular_vel_h = 0.005 * np.sign(point_h[0] - self.image.shape[1]/2) * min(self.image.shape[1] - point_h[0], point_h[0])
+                        
+                angular_vel = angular_vel_p + angular_vel_h
+                linear_vel = 1.2
+                         
                 # cv.imshow('Camera raw', self.image)
                 # cv.imshow('prey centroid', frame)
                 # k = cv.waitKey(1)
@@ -99,7 +109,11 @@ class Player():
                 #     twist.linear.x = 0
                 #     self.cmd_vel_pub.publish(twist)
                 #     break
-
+                
+                # create velocity message
+                twist = Twist()
+                twist.angular.z = angular_vel
+                twist.linear.x = linear_vel
                 self.cmd_vel_pub.publish(twist)
             except KeyboardInterrupt:
                 twist.angular.z = 0
