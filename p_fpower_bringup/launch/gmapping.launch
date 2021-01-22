@@ -1,12 +1,3 @@
-<!-- <launch>
-    <arg name="player_name" default="p_fpower" />
-
-    <group ns="$(arg player_name)">
-        <node name="slam_gmapping" pkg="gmapping" 
-    </group>
-
-</launch> -->
-
 <launch>
     <arg name="player_name" default="p_fpower" />
 

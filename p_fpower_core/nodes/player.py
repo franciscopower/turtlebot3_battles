@@ -193,19 +193,6 @@ class Player():
             #show centroid of selected area
             frame_one_area = cv.circle(frame_one_area, (x,y), 5, (0,0,255), -1)
 
-        # #show binarized image
-        # cv.imshow('bin img', I_bin)
-
-        #use shake prevention
-        # discard if area is too small
-        # if stats[big_area_idx, 4] < frame.shape[0]*frame.shape[1]*0.01:
-        #     x = 0
-        #     y = 0
-            
-        #     if len(stats) != 1:
-        #         #show selected area in red
-        #         frame_one_area[M_SA == 255] = (0,0,255)
-        # discard if it cannot find any whitepoints
         if len(stats) == 1:
             x = 0
             y = 0
