@@ -66,42 +66,22 @@ class Player():
         self.odom = odom
          
     def laserScanCallback(self, polar):
-        
-        a = polar.angle_min
-        r0 = 0.0
-                        
-        cluster = []
-        cluster_size = 0
-        self.clusters = []
-        r_min = np.inf
-        
-        for r in polar.ranges:
+        #detect objects and calculate avoidance angular velocity
+        if polar.ranges !=[]:
+            min_r_detected_idx = polar.ranges.index(min(polar.ranges))
+            angle_min_r = polar.angle_min + min_r_detected_idx*polar.angle_increment
             
-            # if r>polar.range_min and r<polar.range_max:
-            if r != np.inf:
-                #calculate distance between sequential points
-                distance = abs(r-r0)
-                
-                if distance < 1:
-                    if r < r_min:
-                        cluster = [a,r]
-                    cluster_size += 1
-                
+            if polar.ranges[min_r_detected_idx]<3 and not (np.pi/6+np.pi/2<=angle_min_r<=3*np.pi/2-np.pi/6):
+                if angle_min_r<np.pi/2:
+                    self.wall_avoidance_angle = angle_min_r - (np.pi/6+np.pi/2)
                 else:
-                    if cluster_size>100:
-                        cluster.append(cluster_size)
-                        self.clusters.append(cluster)
-                    cluster = []
-                    cluster_size = 0
-                    r_min = np.inf
-                
-                # update variables
-                r0 = r
-                
-            a += polar.angle_increment
+                    self.wall_avoidance_angle = angle_min_r - (3*np.pi/2-np.pi/6)
+            else:
+                self.wall_avoidance_angle = 0
             
-        # print(self.clusters)
-                        
+        else:
+            self.wall_avoidance_angle = 0
+
        
     def imageCallback(self, image):
         self.image = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')    
@@ -110,7 +90,7 @@ class Player():
         
         # cv.imshow('Camera raw', self.image)
         # cv.imshow('hunter centroid', frame_h)
-        cv.imshow('prey centroid', frame_p)
+        cv.imshow(self.name + "'s prey centroid", frame_p)
         cv.waitKey(1)
         
     def playCatch(self):
@@ -119,7 +99,9 @@ class Player():
         while not rospy.is_shutdown():
             
             try:  
-                linear_vel = 0
+                linear_vel = 0.5
+                
+                #catch prey
                 if self.point_p==(0,0):
                     angular_vel_p = pm * 0.8
                 else:
@@ -129,6 +111,7 @@ class Player():
                     pm = np.sign(angular_vel_p)*1
                     linear_vel = 1
 
+                #flee from hunter
                 if self.point_h==(0,0):
                     angular_vel_h = 0
                 else:
@@ -136,12 +119,21 @@ class Player():
                     linear_vel = 1
                     
                 angular_vel = angular_vel_p + angular_vel_h
+                
+                #Wall avoidance
+                if self.point_p==(0,0) and self.point_h==(0,0) and self.wall_avoidance_angle!=0:
+                    angular_vel = self.wall_avoidance_angle
+                    pm = np.sign(angular_vel)*1
+                    if angular_vel<-np.pi/4 or angular_vel>np.pi/4:
+                        linear_vel = 0
+                    print(self.name + ': ' + str(self.wall_avoidance_angle))
 
                 # create velocity message
                 twist = Twist()
                 twist.angular.z = angular_vel
                 twist.linear.x = linear_vel
                 self.cmd_vel_pub.publish(twist)
+                
             except KeyboardInterrupt:
                 twist.angular.z = 0
                 twist.linear.x = 0
